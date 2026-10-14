@@ -1,67 +1,40 @@
-## Hi there 👋
+## Abdullah Azmi
 
-### 👨‍💻 About Me
-- I'm Abdullah — CS @ Northwestern, currently a SWE @ `<tobefilled>`  
-- I like building things fast, breaking them, and making them better  
-- Long-term goal: build and scale my own startup  
-
----
-
-### 🚀 Current Interests
-- Building AI-powered apps & agentic workflows  
-- Startup ideas, MVPs, and rapid prototyping  
-- Full-stack systems with real-world impact  
-- Exploring infra (AWS, Terraform, scalable systems)  
+### Computational Genomics & Agentic Systems (CGAS) Lab · Northwestern CS
+- **Research Group Portal:** [abdullahazmi.com/lab](https://abdullahazmi.com/lab/) · **Main Site:** [abdullahazmi.com](https://abdullahazmi.com/)
+- **Department:** Computer Science & Northwestern Institute on Complex Systems (NICO), Northwestern University
+- **Research Focus:** Scientific Knowledge Graphs, Multi-Agent Research Workflows, Regulatory Genomics & Non-Coding Variant Interpretation, and Calibrated Bayesian State-Space Inference
 
 ---
 
-### 🛠️ Skills
+### Active Research Software & Open-Source Repositories
 
-**Languages:**  
+- **[PaperPulse (`aazminu/paper-pulse`)](https://github.com/aazminu/paper-pulse)** — Autonomous nightly scientific literature ingestion across ArXiv, Semantic Scholar, PubMed, and OpenAlex with hybrid PostgreSQL (`pgvector`) retrieval and Neo4j citation-concept knowledge graph synthesis.
+- **[ChromAlphaGenome (`aazminu/chrom-alphagenome`)](https://github.com/aazminu/chrom-alphagenome)** — Multi-modal non-coding variant prioritization, chromatin accessibility footprint de-biasing, and Sashimi splice-disruption (`ΔΨ`) calibration integrating the 1PB AlphaGenome Atlas, ClinVar, gnomAD, and ENCODE cCREs.
+- **[BayesKalmanTrace (`aazminu/bayes-kalman-trace`)](https://github.com/aazminu/bayes-kalman-trace)** — Recursive Bayesian state-space estimator and calibrated uncertainty quantification for noisy velocity trajectories with analytic missing-data marginalization and log-linear likelihood pooling.
+- **[FoldEnergetics-xTB (`aazminu/fold-energetics-xtb`)](https://github.com/aazminu/fold-energetics-xtb)** — High-throughput AlphaFold PAE rigid-domain graph partitioning, Foldseek 3Di structural homology search, and semiempirical quantum-chemical (`GFN2-xTB`) ligand bioactivity triage.
+
+---
+
+### Technical Stack
+
+**Languages & Scientific Computing:**  
 ![Python](https://img.shields.io/badge/-Python-000?&logo=python)
-![JavaScript](https://img.shields.io/badge/-JavaScript-000?&logo=javascript)
-![TypeScript](https://img.shields.io/badge/-TypeScript-000?&logo=typescript)
-![Java](https://img.shields.io/badge/-Java-000?&logo=openjdk)
+![Rust](https://img.shields.io/badge/-Rust-000?&logo=rust)
 ![C++](https://img.shields.io/badge/-C++-000?&logo=cplusplus)
+![TypeScript](https://img.shields.io/badge/-TypeScript-000?&logo=typescript)
 ![SQL](https://img.shields.io/badge/-SQL-000?&logo=postgresql)
 
-**Frontend:**  
-![React](https://img.shields.io/badge/-React-000?&logo=react)
-![Next.js](https://img.shields.io/badge/-Next.js-000?&logo=nextdotjs)
-![Tailwind](https://img.shields.io/badge/-Tailwind-000?&logo=tailwindcss)
-![React Native](https://img.shields.io/badge/-React%20Native-000?&logo=react)
-
-**Backend:**  
+**AI, Bioinformatics & Data Infrastructure:**  
+![PyTorch](https://img.shields.io/badge/-PyTorch-000?&logo=pytorch)
 ![FastAPI](https://img.shields.io/badge/-FastAPI-000?&logo=fastapi)
-![Django](https://img.shields.io/badge/-Django-000?&logo=django)
-![Node.js](https://img.shields.io/badge/-Node.js-000?&logo=node.js)
-
-**Databases:**  
-![PostgreSQL](https://img.shields.io/badge/-PostgreSQL-000?&logo=postgresql)
-![MySQL](https://img.shields.io/badge/-MySQL-000?&logo=mysql)
-![SQLite](https://img.shields.io/badge/-SQLite-000?&logo=sqlite)
-![DynamoDB](https://img.shields.io/badge/-DynamoDB-000?&logo=amazondynamodb)
-
-**Cloud & DevOps:**  
-![AWS](https://img.shields.io/badge/-AWS-000?&logo=amazonaws)
-![Terraform](https://img.shields.io/badge/-Terraform-000?&logo=terraform)
+![PostgreSQL](https://img.shields.io/badge/-PostgreSQL_pgvector-000?&logo=postgresql)
+![Neo4j](https://img.shields.io/badge/-Neo4j-000?&logo=neo4j)
+![Next.js](https://img.shields.io/badge/-Next.js-000?&logo=nextdotjs)
 ![Docker](https://img.shields.io/badge/-Docker-000?&logo=docker)
-![Kubernetes](https://img.shields.io/badge/-Kubernetes-000?&logo=kubernetes)
-![GitHub Actions](https://img.shields.io/badge/-GitHub%20Actions-000?&logo=githubactions)
-
-**Other:**  
-![Git](https://img.shields.io/badge/-Git-000?&logo=git)
-![Prisma](https://img.shields.io/badge/-Prisma-000?&logo=prisma)
-![Redis](https://img.shields.io/badge/-Redis-000?&logo=redis)
-![Kafka](https://img.shields.io/badge/-Kafka-000?&logo=apachekafka)
 
 ---
 
-### Github Stats
-[![Abdullah's GitHub stats](https://github-readme-stats.vercel.app/api?username=aazminu)](https://github.com/aazminu)
-
----
-
-### 🤝 Let’s Collaborate
-- Always down to build cool stuff or hack on ideas  
-- Reach out on [LinkedIn](https://www.linkedin.com/in/aazminu/) (preferred)
+### Contact
+- **Lab Website:** [https://abdullahazmi.com/lab/](https://abdullahazmi.com/lab/)
+- **LinkedIn:** [linkedin.com/in/aazminu](https://www.linkedin.com/in/aazminu/)
