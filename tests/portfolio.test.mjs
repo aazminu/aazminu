@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -66,11 +67,18 @@ export function extractJsonLdBlocks(htmlContent) {
   if (typeof htmlContent !== 'string' || htmlContent.trim() === '') {
     return [];
   }
-  const regex = /<script\s+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi;
+  const scriptRegex = /<script\b([^>]*)>([\s\S]*?)<\/script>/gi;
+  const typeAttrRegex = /\btype\s*=\s*(?:["']\s*application\/ld\+json(?:\s*;[^"']*)?\s*["']|application\/ld\+json\b)/i;
   const blocks = [];
   let match;
-  while ((match = regex.exec(htmlContent)) !== null) {
-    blocks.push(match[1].trim());
+  while ((match = scriptRegex.exec(htmlContent)) !== null) {
+    const attrs = match[1] || '';
+    if (typeAttrRegex.test(attrs)) {
+      const body = match[2].trim();
+      if (body) {
+        blocks.push(body);
+      }
+    }
   }
   return blocks;
 }
@@ -79,23 +87,30 @@ export function extractRelativeAssetRefs(htmlContent) {
   if (typeof htmlContent !== 'string' || htmlContent.trim() === '') {
     return [];
   }
-  const regex = /\b(?:src|href)=["']([^"']+)["']/gi;
+  const regex = /\b(?:src|href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s"'=<>`]+))/gi;
   const refs = [];
   let match;
   while ((match = regex.exec(htmlContent)) !== null) {
-    const raw = match[1].trim();
+    const rawValue = (match[1] ?? match[2] ?? match[3] ?? '').trim();
+    if (!rawValue) {
+      continue;
+    }
+    const lower = rawValue.toLowerCase();
     if (
-      !raw ||
-      raw.startsWith('http://') ||
-      raw.startsWith('https://') ||
-      raw.startsWith('mailto:') ||
-      raw.startsWith('tel:') ||
-      raw.startsWith('data:') ||
-      raw.startsWith('#')
+      lower.startsWith('http://') ||
+      lower.startsWith('https://') ||
+      lower.startsWith('//') ||
+      lower.startsWith('mailto:') ||
+      lower.startsWith('tel:') ||
+      lower.startsWith('data:') ||
+      lower.startsWith('javascript:') ||
+      lower.startsWith('blob:') ||
+      lower.startsWith('about:') ||
+      lower.startsWith('#')
     ) {
       continue;
     }
-    const cleanPath = raw.split('#')[0].split('?')[0];
+    const cleanPath = rawValue.split('#')[0].split('?')[0].trim();
     if (cleanPath) {
       refs.push(cleanPath);
     }
@@ -103,16 +118,76 @@ export function extractRelativeAssetRefs(htmlContent) {
   return refs;
 }
 
+export function resolveLocalAssetPath(siteRoot, pageDir, ref) {
+  if (typeof ref !== 'string' || ref.trim() === '' || ref.startsWith('//')) {
+    throw new Error(`Invalid local asset reference: ${ref}`);
+  }
+  const normalizedSiteRoot = path.resolve(siteRoot);
+  const resolved = ref.startsWith('/')
+    ? path.resolve(normalizedSiteRoot, '.' + ref)
+    : path.resolve(pageDir, ref);
+
+  const relToRoot = path.relative(normalizedSiteRoot, resolved);
+  if (relToRoot.startsWith('..') || path.isAbsolute(relToRoot)) {
+    throw new Error(`Asset reference escapes site root: ${ref}`);
+  }
+  return resolved;
+}
+
 export function mapSitemapUrlToLocalPath(locUrl) {
   const prefix = 'https://abdullahazmi.com/';
   if (typeof locUrl !== 'string' || !locUrl.startsWith(prefix)) {
     throw new Error(`Invalid domain in sitemap loc: ${locUrl}`);
   }
-  const subPath = locUrl.slice(prefix.length);
-  if (subPath === '' || subPath.endsWith('/')) {
-    return path.posix.join(subPath, 'index.html');
+  const rawSubPath = locUrl.slice(prefix.length).split('#')[0].split('?')[0];
+  if (rawSubPath.includes('\\')) {
+    throw new Error(`Invalid backslash in sitemap loc: ${locUrl}`);
   }
-  return subPath;
+  const segments = rawSubPath.split('/').filter(Boolean);
+  if (segments.includes('..') || segments.includes('.')) {
+    throw new Error(`Path traversal not allowed in sitemap loc: ${locUrl}`);
+  }
+  if (rawSubPath === '' || rawSubPath.endsWith('/')) {
+    return path.posix.join(rawSubPath, 'index.html');
+  }
+  return path.posix.normalize(rawSubPath);
+}
+
+export function extractJsRelativeRefs(jsContent) {
+  if (typeof jsContent !== 'string' || jsContent.trim() === '') {
+    return [];
+  }
+  const regex = /["'](\.\.?\/(?:assets\/[^"'?#\s]+|lab\/))(?:\?[^"']*|\#[^"']*)?["']/g;
+  const refs = new Set();
+  let match;
+  while ((match = regex.exec(jsContent)) !== null) {
+    refs.add(match[1]);
+  }
+  return [...refs];
+}
+
+function collectGraphIds(value, definedIds, referencedIds) {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      collectGraphIds(item, definedIds, referencedIds);
+    }
+    return;
+  }
+  if (value && typeof value === 'object') {
+    const keys = Object.keys(value);
+    if (typeof value['@id'] === 'string') {
+      if (keys.length > 1) {
+        definedIds.add(value['@id']);
+      } else {
+        referencedIds.add(value['@id']);
+      }
+    }
+    for (const key of keys) {
+      if (key !== '@id') {
+        collectGraphIds(value[key], definedIds, referencedIds);
+      }
+    }
+  }
 }
 
 test('Profile README.md contains all 22 standalone repository links, portal badges, and institutional metadata', () => {
@@ -166,8 +241,14 @@ test('HTML pages (/, /lab/, /research/) have valid structure, metadata, and reso
     assert.ok(refs.length > 0, `${page.relPath} should reference local assets`);
     const pageDir = path.dirname(fullPath);
     for (const ref of refs) {
-      const resolved = path.resolve(pageDir, ref);
+      const resolved = resolveLocalAssetPath(SITE_ROOT, pageDir, ref);
       assert.ok(fs.existsSync(resolved), `Broken relative reference "${ref}" in ${page.relPath}`);
+      const stat = fs.statSync(resolved);
+      if (stat.isDirectory()) {
+        assert.ok(fs.existsSync(path.join(resolved, 'index.html')), `Directory reference "${ref}" in ${page.relPath} missing index.html`);
+      } else {
+        assert.ok(stat.size > 0, `Referenced file "${ref}" in ${page.relPath} is empty`);
+      }
     }
   }
 
@@ -176,7 +257,7 @@ test('HTML pages (/, /lab/, /research/) have valid structure, metadata, and reso
   assert.strictEqual(labHtml, researchHtml, '/lab/index.html and /research/index.html mirror must remain in sync');
 });
 
-test('JSON-LD structured data is valid Schema.org JSON across /, /lab/, and /research/', (t) => {
+test('JSON-LD structured data is valid Schema.org JSON with resolved @id references across /, /lab/, and /research/', (t) => {
   if (!SITE_ROOT) {
     t.skip('Sibling abdullahazmi.com checkout not present');
     return;
@@ -191,8 +272,23 @@ test('JSON-LD structured data is valid Schema.org JSON across /, /lab/, and /res
       const parsed = JSON.parse(rawBlock);
       assert.strictEqual(parsed['@context'], 'https://schema.org');
       assert.ok(Array.isArray(parsed['@graph']) && parsed['@graph'].length > 0);
+
+      const definedIds = new Set();
+      const referencedIds = new Set();
+      collectGraphIds(parsed['@graph'], definedIds, referencedIds);
+      for (const refId of referencedIds) {
+        assert.ok(definedIds.has(refId), `${page.relPath} JSON-LD references undefined @id "${refId}"`);
+      }
+
       const types = new Set(parsed['@graph'].map((node) => node['@type']));
       assert.ok(types.has('ResearchOrganization'));
+      if (page.route === '/') {
+        assert.ok(types.has('ProfilePage'));
+        assert.ok(types.has('Person'));
+      } else {
+        const codeNodes = parsed['@graph'].filter((node) => node['@type'] === 'SoftwareSourceCode');
+        assert.strictEqual(codeNodes.length, 4);
+      }
     }
   }
 });
@@ -222,7 +318,9 @@ test('Sitemap, robots.txt, CNAME, and .nojekyll are valid and map to existing fi
   }
   for (const loc of locMatches) {
     const relFile = mapSitemapUrlToLocalPath(loc);
-    assert.ok(fs.existsSync(path.join(SITE_ROOT, relFile)), `Missing file for sitemap loc ${loc}`);
+    const resolved = path.join(SITE_ROOT, relFile);
+    assert.ok(fs.existsSync(resolved), `Missing file for sitemap loc ${loc}`);
+    assert.ok(fs.statSync(resolved).size > 0, `Empty file for sitemap loc ${loc}`);
   }
 });
 
@@ -233,27 +331,68 @@ test('Static assets and 22 repository links across abdullahazmi.com pass integri
   }
 
   const pdfPrimary = fs.readFileSync(path.join(SITE_ROOT, 'assets/abdullah-azmi-resume.pdf'));
+  const pdfMirror = fs.readFileSync(path.join(SITE_ROOT, 'assets/northwestern-student-resume.pdf'));
   assert.strictEqual(pdfPrimary.subarray(0, 5).toString('ascii'), '%PDF-');
+  assert.ok(pdfPrimary.equals(pdfMirror));
+
+  for (const jsRel of ['assets/index-VqgN4zkm.js', 'assets/extension.js']) {
+    const jsContent = fs.readFileSync(path.join(SITE_ROOT, jsRel), 'utf8');
+    assert.doesNotThrow(() => new vm.Script(jsContent, { filename: jsRel }));
+    for (const ref of extractJsRelativeRefs(jsContent)) {
+      const resolved = resolveLocalAssetPath(SITE_ROOT, SITE_ROOT, ref);
+      assert.ok(fs.existsSync(resolved), `Missing JS asset ref ${ref} in ${jsRel}`);
+    }
+  }
 
   const bundleJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/index-VqgN4zkm.js'), 'utf8');
   const labHtml = fs.readFileSync(path.join(SITE_ROOT, 'lab/index.html'), 'utf8');
+  const researchHtml = fs.readFileSync(path.join(SITE_ROOT, 'research/index.html'), 'utf8');
   const siteReadme = fs.readFileSync(path.join(SITE_ROOT, 'README.md'), 'utf8');
+  const provenance = fs.readFileSync(path.join(SITE_ROOT, 'provenance.md'), 'utf8');
+
+  assert.ok(!bundleJs.includes('?tab=repositories'));
+  assert.ok(!labHtml.includes('?tab=repositories'));
+  assert.ok(!researchHtml.includes('?tab=repositories'));
+
   for (const repo of CORE_16_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
     assert.ok(bundleJs.includes(url), `Bundle missing ${url}`);
-    assert.ok(labHtml.includes(url), `lab/index.html missing ${url}`);
   }
   for (const repo of ALL_22_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
+    assert.ok(labHtml.includes(url), `lab/index.html missing ${url}`);
+    assert.ok(researchHtml.includes(url), `research/index.html missing ${url}`);
     assert.ok(siteReadme.includes(url), `Site README.md missing ${url}`);
+    assert.ok(provenance.includes(url), `provenance.md missing ${url}`);
   }
 });
 
-test('Validator helpers handle empty inputs, external URLs, and invalid sitemap domains safely', () => {
+test('Validator helpers handle empty inputs, unquoted/reordered attributes, external schemes, and path traversal safely', () => {
   assert.deepStrictEqual(extractJsonLdBlocks(''), []);
-  assert.deepStrictEqual(extractRelativeAssetRefs('<a href="https://abdullahazmi.com/">Home</a><img src="../assets/abdullah-azmi-avatar.svg" />'), [
-    '../assets/abdullah-azmi-avatar.svg'
-  ]);
-  assert.strictEqual(mapSitemapUrlToLocalPath('https://abdullahazmi.com/research/'), 'research/index.html');
+  assert.deepStrictEqual(
+    extractJsonLdBlocks('<script id="ld-1" type="application/ld+json; charset=utf-8">{"@context":"https://schema.org"}</script><script type=application/ld+json>{"@type":"Person"}</script>'),
+    ['{"@context":"https://schema.org"}', '{"@type":"Person"}']
+  );
+  assert.deepStrictEqual(
+    extractRelativeAssetRefs(
+      '<a href="https://abdullahazmi.com/">Home</a>' +
+      '<a href="//cdn.example.com/x.js">CDN</a>' +
+      '<a href="javascript:void(0)">JS</a>' +
+      '<img src="../assets/abdullah-azmi-avatar.svg" />' +
+      '<script src=./assets/extension.js></script>' +
+      '<link href = "/lab/" />'
+    ),
+    ['../assets/abdullah-azmi-avatar.svg', './assets/extension.js', '/lab/']
+  );
+  assert.strictEqual(
+    resolveLocalAssetPath(PROFILE_ROOT, PROFILE_ROOT, '/README.md'),
+    path.join(PROFILE_ROOT, 'README.md')
+  );
+  assert.throws(
+    () => resolveLocalAssetPath(PROFILE_ROOT, PROFILE_ROOT, '../../outside.txt'),
+    /escapes site root/
+  );
+  assert.strictEqual(mapSitemapUrlToLocalPath('https://abdullahazmi.com/research/?x=1#y'), 'research/index.html');
   assert.throws(() => mapSitemapUrlToLocalPath('https://malicious.example.com/'), /Invalid domain/);
+  assert.throws(() => mapSitemapUrlToLocalPath('https://abdullahazmi.com/../../etc/passwd'), /Path traversal/);
 });
