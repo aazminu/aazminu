@@ -36,7 +36,7 @@
 
 ---
 
-### III. Systems Architecture, Distributed Data & Applied ML Suite ([Full 16-System Catalog](https://github.com/aazminu/abdullahazmi.com/blob/main/PROFILE_PLAN.md))
+### III. Systems Architecture, Distributed Data & Applied ML Suite ([Full 28-System Catalog](https://github.com/aazminu/abdullahazmi.com/blob/main/PROFILE_PLAN.md))
 
 - **[`aazminu/data-cleaning-hackumass` — ScrubData Distributed Tabular Cleaning Engine](https://github.com/aazminu/data-cleaning-hackumass):** Automated schema inference, composite key deduplication, MAD/Z-score/IQR anomaly isolation, and exception manifest generation over 100K+ row CSV/Parquet datasets (`Python`, `Node.js`, `PostgreSQL`, `Apache Spark / Databricks`, `AWS S3`).
 - **[`aazminu/python-riscv-simulator` — Cycle-Accurate RISC-V (`RV32I`) 5-Stage Pipelined Simulator](https://github.com/aazminu/python-riscv-simulator):** Bit-accurate single-cycle and 5-stage pipelined (`IF, ID, EX, MEM, WB`) RV32I processor simulator in `Python/C` with `EX/MEM` and `MEM/WB` RAW hazard forwarding, load-use stall bubble injection, and golden-trace verification.
@@ -54,6 +54,12 @@
 - **[`aazminu/grab-pic`](https://github.com/aazminu/grab-pic):** Event photo sharing platform pairing a Spring Boot REST API with a GhostFaceNet + RetinaFace cosine-similarity selfie search worker.
 - **[`aazminu/comic-subscription`](https://github.com/aazminu/comic-subscription):** Marvel comic series tracker and automated chapter-delta email notification service.
 - **[`aazminu/motorcycle-rideability-index`](https://github.com/aazminu/motorcycle-rideability-index):** Weather-driven motorcycle rideability scoring API and severe-weather risk classification service.
+- **[`aazminu/markov-music`](https://github.com/aazminu/markov-music):** Variable-order Markov chain musical sequence generator with lower-order suffix backoff, additive Laplace smoothing, log-sum-exp temperature decoding, and harmonic consonance evaluation.
+- **[`aazminu/NYC-Property-Scout`](https://github.com/aazminu/NYC-Property-Scout):** NYC real-estate geospatial BBL normalization, multi-source dataset discrepancy auditing, spatial Haversine comparable matching, and NOI/cap-rate valuation pipeline.
+- **[`aazminu/nitro-lab`](https://github.com/aazminu/nitro-lab):** Real-time Linux home-server and multi-container Docker health telemetry engine over Server-Sent Events (SSE) with online Welford/EWMA anomaly detection and SLA burn-rate calculation.
+- **[`aazminu/Watch-Engine`](https://github.com/aazminu/Watch-Engine):** Hybrid Okapi BM25 and dense vector watch catalog search engine with Reciprocal Rank Fusion (RRF), MAD z-score price anomaly detection, and Recall@K/MRR/nDCG@K retrieval evaluation.
+- **[`aazminu/ClaimLess`](https://github.com/aazminu/ClaimLess):** AI medical-bill auditing and patient advocacy engine with GPCI locality-adjusted CMS Medicare fee-schedule benchmarking, NCCI unbundling detection, and settlement strategy synthesis.
+- **[`aazminu/finsim`](https://github.com/aazminu/finsim):** Interactive historical market regime and portfolio simulator with CAGR/Sharpe/Sortino/VaR/CVaR risk analytics, cash-conserving SELL-first rebalancing, and seeded GBM Monte Carlo projections.
 
 ---
 
