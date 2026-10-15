@@ -46,16 +46,22 @@ const CORE_16_REPOS = [
   'movie-recc'
 ];
 
-const ADDITIONAL_6_REPOS = [
+const ADDITIONAL_12_REPOS = [
   'sp500_platform',
   'AP-Study-Guide-Generator',
   'Environmental-Disaster-Classifier',
   'grab-pic',
   'comic-subscription',
-  'motorcycle-rideability-index'
+  'motorcycle-rideability-index',
+  'markov-music',
+  'NYC-Property-Scout',
+  'nitro-lab',
+  'Watch-Engine',
+  'ClaimLess',
+  'finsim'
 ];
 
-const ALL_22_REPOS = [...CORE_16_REPOS, ...ADDITIONAL_6_REPOS];
+const ALL_28_REPOS = [...CORE_16_REPOS, ...ADDITIONAL_12_REPOS];
 
 const HTML_PAGES = [
   { route: '/', relPath: 'index.html', canonical: 'https://abdullahazmi.com/' },
@@ -190,7 +196,7 @@ function collectGraphIds(value, definedIds, referencedIds) {
   }
 }
 
-test('Profile README.md contains all 22 standalone repository links, portal badges, and institutional metadata', () => {
+test('Profile README.md contains all 28 standalone repository links, portal badges, and institutional metadata', () => {
   const readmePath = path.join(PROFILE_ROOT, 'README.md');
   assert.ok(fs.existsSync(readmePath), 'Profile README.md must exist');
   const readme = fs.readFileSync(readmePath, 'utf8');
@@ -208,7 +214,7 @@ test('Profile README.md contains all 22 standalone repository links, portal badg
     'Profile README.md must link directly to standalone repositories without ?tab=repositories fallbacks'
   );
 
-  for (const repo of ALL_22_REPOS) {
+  for (const repo of ALL_28_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
     assert.ok(readme.includes(url), `Profile README.md missing standalone repository link ${url}`);
   }
@@ -324,7 +330,7 @@ test('Sitemap, robots.txt, CNAME, and .nojekyll are valid and map to existing fi
   }
 });
 
-test('Static assets and 22 repository links across abdullahazmi.com pass integrity checks', (t) => {
+test('Static assets and 28 repository links across abdullahazmi.com pass integrity checks', (t) => {
   if (!SITE_ROOT) {
     t.skip('Sibling abdullahazmi.com checkout not present');
     return;
@@ -344,9 +350,11 @@ test('Static assets and 22 repository links across abdullahazmi.com pass integri
     }
   }
 
+  const indexHtml = fs.readFileSync(path.join(SITE_ROOT, 'index.html'), 'utf8');
   const bundleJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/index-VqgN4zkm.js'), 'utf8');
   const labHtml = fs.readFileSync(path.join(SITE_ROOT, 'lab/index.html'), 'utf8');
   const researchHtml = fs.readFileSync(path.join(SITE_ROOT, 'research/index.html'), 'utf8');
+  const profilePlan = fs.readFileSync(path.join(SITE_ROOT, 'PROFILE_PLAN.md'), 'utf8');
   const siteReadme = fs.readFileSync(path.join(SITE_ROOT, 'README.md'), 'utf8');
   const provenance = fs.readFileSync(path.join(SITE_ROOT, 'provenance.md'), 'utf8');
 
@@ -358,10 +366,12 @@ test('Static assets and 22 repository links across abdullahazmi.com pass integri
     const url = `https://github.com/aazminu/${repo}`;
     assert.ok(bundleJs.includes(url), `Bundle missing ${url}`);
   }
-  for (const repo of ALL_22_REPOS) {
+  for (const repo of ALL_28_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
+    assert.ok(indexHtml.includes(url), `index.html missing ${url}`);
     assert.ok(labHtml.includes(url), `lab/index.html missing ${url}`);
     assert.ok(researchHtml.includes(url), `research/index.html missing ${url}`);
+    assert.ok(profilePlan.includes(url), `PROFILE_PLAN.md missing ${url}`);
     assert.ok(siteReadme.includes(url), `Site README.md missing ${url}`);
     assert.ok(provenance.includes(url), `provenance.md missing ${url}`);
   }
