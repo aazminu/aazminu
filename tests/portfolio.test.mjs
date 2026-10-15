@@ -352,6 +352,7 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
 
   const indexHtml = fs.readFileSync(path.join(SITE_ROOT, 'index.html'), 'utf8');
   const bundleJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/index-VqgN4zkm.js'), 'utf8');
+  const extensionJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/extension.js'), 'utf8');
   const labHtml = fs.readFileSync(path.join(SITE_ROOT, 'lab/index.html'), 'utf8');
   const researchHtml = fs.readFileSync(path.join(SITE_ROOT, 'research/index.html'), 'utf8');
   const profilePlan = fs.readFileSync(path.join(SITE_ROOT, 'PROFILE_PLAN.md'), 'utf8');
@@ -361,6 +362,10 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
   assert.ok(!bundleJs.includes('?tab=repositories'));
   assert.ok(!labHtml.includes('?tab=repositories'));
   assert.ok(!researchHtml.includes('?tab=repositories'));
+  assert.ok(
+    profilePlan.includes('(28 Systems)') && !profilePlan.includes('(16 Systems)'),
+    'PROFILE_PLAN.md must specify (28 Systems) rather than stale (16 Systems)'
+  );
 
   for (const repo of CORE_16_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
@@ -369,6 +374,7 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
   for (const repo of ALL_28_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
     assert.ok(indexHtml.includes(url), `index.html missing ${url}`);
+    assert.ok(extensionJs.includes(`'${repo}'`), `assets/extension.js missing ${repo}`);
     assert.ok(labHtml.includes(url), `lab/index.html missing ${url}`);
     assert.ok(researchHtml.includes(url), `research/index.html missing ${url}`);
     assert.ok(profilePlan.includes(url), `PROFILE_PLAN.md missing ${url}`);
