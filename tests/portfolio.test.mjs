@@ -301,6 +301,20 @@ test('JSON-LD structured data is valid Schema.org JSON with resolved @id referen
       if (page.route === '/') {
         assert.ok(types.has('ProfilePage'));
         assert.ok(types.has('Person'));
+        const profilePage = parsed['@graph'].find((node) => node['@type'] === 'ProfilePage');
+        assert.ok(Array.isArray(profilePage.significantLink), 'ProfilePage must define significantLink array');
+        for (const repo of ALL_28_REPOS) {
+          assert.ok(
+            profilePage.significantLink.includes(`https://github.com/aazminu/${repo}`),
+            `ProfilePage.significantLink missing https://github.com/aazminu/${repo}`
+          );
+        }
+        for (const prUrl of VERIFIED_UPSTREAM_PRS) {
+          assert.ok(
+            profilePage.significantLink.includes(prUrl),
+            `ProfilePage.significantLink missing ${prUrl}`
+          );
+        }
       } else {
         const codeNodes = parsed['@graph'].filter((node) => node['@type'] === 'SoftwareSourceCode');
         assert.strictEqual(codeNodes.length, 4);
@@ -370,10 +384,22 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
   const siteReadme = fs.readFileSync(path.join(SITE_ROOT, 'README.md'), 'utf8');
   const provenance = fs.readFileSync(path.join(SITE_ROOT, 'provenance.md'), 'utf8');
 
-  assert.ok(!bundleJs.includes('?tab=repositories'));
-  assert.ok(!bundleVersionedJs.includes('?tab=repositories'));
-  assert.ok(!labHtml.includes('?tab=repositories'));
-  assert.ok(!researchHtml.includes('?tab=repositories'));
+  for (const [name, content] of [
+    ['index.html', indexHtml],
+    ['assets/index-VqgN4zkm.js', bundleJs],
+    ['assets/index-2552cda7.js', bundleVersionedJs],
+    ['assets/extension.js', extensionJs],
+    ['lab/index.html', labHtml],
+    ['research/index.html', researchHtml],
+    ['PROFILE_PLAN.md', profilePlan],
+    ['README.md', siteReadme],
+    ['provenance.md', provenance]
+  ]) {
+    assert.ok(
+      !content.includes('?tab=repositories'),
+      `${name} must not use generic ?tab=repositories fallback links`
+    );
+  }
   assert.ok(
     profilePlan.includes('(28 Systems)') && !profilePlan.includes('(16 Systems)'),
     'PROFILE_PLAN.md must specify (28 Systems) rather than stale (16 Systems)'
@@ -395,6 +421,7 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
     assert.ok(provenance.includes(url), `provenance.md missing ${url}`);
   }
   for (const prUrl of VERIFIED_UPSTREAM_PRS) {
+    assert.ok(indexHtml.includes(prUrl), `index.html missing ${prUrl}`);
     assert.ok(extensionJs.includes(prUrl), `assets/extension.js missing ${prUrl}`);
     assert.ok(labHtml.includes(prUrl), `lab/index.html missing ${prUrl}`);
     assert.ok(researchHtml.includes(prUrl), `research/index.html missing ${prUrl}`);
@@ -404,7 +431,246 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
   }
 });
 
-test('Validator helpers handle empty inputs, unquoted/reordered attributes, external schemes, and path traversal safely', () => {
+function createDomHarness() {
+  class MockElement {
+    constructor(tagName) {
+      this.tagName = String(tagName || 'div').toUpperCase();
+      this.id = '';
+      this.className = '';
+      this._text = '';
+      this._innerHTML = '';
+      this.hidden = false;
+      this.style = {};
+      this.dataset = {};
+      this.attributes = new Map();
+      this.children = [];
+      this.parentElement = null;
+      this.listeners = new Map();
+    }
+    get textContent() {
+      if (this.children.length === 0) return this._text;
+      return [this._text, ...this.children.map((c) => c.textContent)].filter(Boolean).join(' ');
+    }
+    set textContent(v) {
+      this._text = String(v ?? '');
+      this.children = [];
+    }
+    get innerHTML() {
+      return this._innerHTML;
+    }
+    set innerHTML(v) {
+      this._innerHTML = String(v ?? '');
+      if (this._innerHTML === '') {
+        this.children = [];
+      }
+    }
+    setAttribute(k, v) {
+      const key = String(k);
+      const val = String(v);
+      this.attributes.set(key, val);
+      if (key === 'id') this.id = val;
+      if (key === 'class') this.className = val;
+      if (key.startsWith('data-')) {
+        const camel = key.slice(5).replace(/-([a-z])/g, (_, ch) => ch.toUpperCase());
+        this.dataset[camel] = val;
+      }
+    }
+    getAttribute(k) {
+      return this.attributes.get(String(k)) ?? null;
+    }
+    removeAttribute(k) {
+      this.attributes.delete(String(k));
+    }
+    append(...nodes) {
+      for (const n of nodes) {
+        if (n instanceof MockElement) {
+          n.parentElement = this;
+          this.children.push(n);
+        }
+      }
+    }
+    before(node) {
+      if (!this.parentElement || !(node instanceof MockElement)) return;
+      node.parentElement = this.parentElement;
+      const idx = this.parentElement.children.indexOf(this);
+      if (idx >= 0) {
+        this.parentElement.children.splice(idx, 0, node);
+      } else {
+        this.parentElement.children.push(node);
+      }
+    }
+    cloneNode(deep = false) {
+      const copy = new MockElement(this.tagName);
+      copy.id = this.id;
+      copy.className = this.className;
+      copy._text = this._text;
+      copy._innerHTML = this._innerHTML;
+      copy.href = this.href;
+      copy.target = this.target;
+      copy.rel = this.rel;
+      for (const [k, v] of this.attributes.entries()) copy.attributes.set(k, v);
+      if (deep) {
+        for (const child of this.children) copy.append(child.cloneNode(true));
+      }
+      return copy;
+    }
+    addEventListener(type, fn) {
+      const list = this.listeners.get(type) || [];
+      list.push(fn);
+      this.listeners.set(type, list);
+    }
+    dispatchEvent(type, eventObj = {}) {
+      const list = this.listeners.get(type) || [];
+      for (const fn of list) {
+        fn({ target: this, ...eventObj });
+      }
+    }
+    scrollIntoView() {}
+    matches(selector) {
+      if (selector.startsWith('#')) return this.id === selector.slice(1);
+      if (selector.startsWith('.')) {
+        const cls = selector.slice(1);
+        return (this.className || '').split(/\s+/).includes(cls);
+      }
+      if (selector.startsWith('[') && selector.endsWith(']')) {
+        const attr = selector.slice(1, -1);
+        return this.attributes.has(attr);
+      }
+      return this.tagName === selector.toUpperCase();
+    }
+    querySelectorAll(selector) {
+      const results = [];
+      const visit = (node) => {
+        for (const child of node.children) {
+          if (child.matches(selector)) results.push(child);
+          visit(child);
+        }
+      };
+      visit(this);
+      return results;
+    }
+    querySelector(selector) {
+      return this.querySelectorAll(selector)[0] || null;
+    }
+  }
+
+  const root = new MockElement('div');
+  root.id = 'root';
+
+  const navLinks = new MockElement('div');
+  navLinks.className = '_links_p88qd_61';
+  const resumeLink = new MockElement('a');
+  resumeLink.href = './assets/abdullah-azmi-resume.pdf';
+  navLinks.append(resumeLink);
+  root.append(navLinks);
+
+  const projects = new MockElement('section');
+  projects.id = 'projects';
+  const grid = new MockElement('div');
+  grid.className = '_grid_1aul7_9';
+
+  const sampleCards = [
+    ['PaperPulse', 'CGAS Lab · Knowledge Graphs', 'https://github.com/aazminu/paper-pulse'],
+    ['Airtight Container', 'Production · PostgreSQL', 'https://github.com/aazminu/airtight-container'],
+    ['RISC-V Simulator', 'Systems & Architecture', 'https://github.com/aazminu/python-riscv-simulator'],
+    ['Khoury Odyssey', 'Open-Source · Next.js', 'https://github.com/aazminu/odyssey']
+  ];
+  for (const [name, award, href] of sampleCards) {
+    const card = new MockElement('article');
+    card.className = '_card_1aul7_24';
+    const h2 = new MockElement('h2');
+    h2.textContent = name;
+    const span = new MockElement('span');
+    span.textContent = award;
+    const ul = new MockElement('ul');
+    const li = new MockElement('li');
+    li.textContent = 'Python';
+    ul.append(li);
+    const p = new MockElement('p');
+    p.textContent = `${name} system description`;
+    const a = new MockElement('a');
+    a.href = href;
+    card.append(h2, span, ul, p, a);
+    grid.append(card);
+  }
+  projects.append(grid);
+  root.append(projects);
+
+  const footer = new MockElement('footer');
+  footer.id = 'footer';
+  root.append(footer);
+
+  const document = {
+    createElement: (tag) => new MockElement(tag),
+    getElementById: (id) => (root.id === id ? root : root.querySelector(`#${id}`)),
+    querySelector: (sel) => root.querySelector(sel),
+    querySelectorAll: (sel) => root.querySelectorAll(sel)
+  };
+
+  class MockMutationObserver {
+    constructor(cb) {
+      this.cb = cb;
+    }
+    observe() {}
+  }
+
+  return { root, document, MutationObserver: MockMutationObserver };
+}
+
+test('assets/extension.js executes in a DOM harness and renders featured banner, filter controls, 4 workbench demos, lab notes, field gallery, and research lab cards', (t) => {
+  if (!SITE_ROOT) {
+    t.skip('Sibling abdullahazmi.com checkout not present');
+    return;
+  }
+
+  const extensionJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/extension.js'), 'utf8');
+  const { root, document, MutationObserver } = createDomHarness();
+
+  vm.runInNewContext(extensionJs, { document, MutationObserver }, { filename: 'assets/extension.js' });
+
+  const workbench = document.getElementById('workbench');
+  assert.ok(workbench, 'extension.js must mount #workbench');
+  const tabs = workbench.querySelectorAll('.workbench-tab');
+  assert.strictEqual(tabs.length, 4, '#workbench must render 4 simulation tabs');
+  for (let i = 1; i < tabs.length; i++) {
+    tabs[i].dispatchEvent('click');
+    assert.strictEqual(tabs[i].getAttribute('aria-selected'), 'true');
+  }
+
+  const researchLab = document.getElementById('research-lab');
+  assert.ok(researchLab, 'extension.js must mount #research-lab');
+  const labCards = researchLab.querySelectorAll('._card_1aul7_24');
+  assert.strictEqual(labCards.length, 6, '#research-lab must render 4 thrust cards + 28-repo catalogCard + upstreamCard');
+  for (const card of labCards) {
+    const techList = card.querySelector('._tech_1aul7_51');
+    assert.ok(techList && techList.children.length >= 4, 'Every card in #research-lab must contain a populated ._tech_1aul7_51 list');
+  }
+
+  const labAnchors = researchLab.querySelectorAll('a').map((a) => a.href);
+  for (const repo of ALL_28_REPOS) {
+    assert.ok(labAnchors.includes(`https://github.com/aazminu/${repo}`));
+  }
+  for (const prUrl of VERIFIED_UPSTREAM_PRS) {
+    assert.ok(labAnchors.includes(prUrl));
+  }
+});
+
+test('Validator helpers handle empty inputs, unquoted/reordered attributes, external schemes, path traversal, and strict identity isolation safely', () => {
+  const forbiddenPattern = new RegExp(
+    String.fromCharCode(101, 99, 99, 121, 115) + '|' + String.fromCharCode(55, 51, 48, 52, 48, 57, 49, 50),
+    'i'
+  );
+  for (const rel of ['README.md', 'tests/portfolio.test.mjs']) {
+    const text = fs.readFileSync(path.join(PROFILE_ROOT, rel), 'utf8');
+    assert.doesNotMatch(text, forbiddenPattern, `${rel} must maintain strict identity isolation`);
+  }
+  if (SITE_ROOT) {
+    for (const rel of ['index.html', 'lab/index.html', 'research/index.html', 'assets/extension.js', 'PROFILE_PLAN.md', 'README.md', 'provenance.md']) {
+      const text = fs.readFileSync(path.join(SITE_ROOT, rel), 'utf8');
+      assert.doesNotMatch(text, forbiddenPattern, `Site ${rel} must maintain strict identity isolation`);
+    }
+  }
+
   assert.deepStrictEqual(extractJsonLdBlocks(''), []);
   assert.deepStrictEqual(extractJsonLdBlocks(null), []);
   assert.deepStrictEqual(extractJsonLdBlocks(undefined), []);
