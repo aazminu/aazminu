@@ -63,6 +63,13 @@ const ADDITIONAL_12_REPOS = [
 
 const ALL_28_REPOS = [...CORE_16_REPOS, ...ADDITIONAL_12_REPOS];
 
+const VERIFIED_UPSTREAM_PRS = [
+  'https://github.com/exmergo/dex/pull/634',
+  'https://github.com/exmergo/dex/pull/633',
+  'https://github.com/GustavoBaranda/chatflow-agent/pull/52',
+  'https://github.com/repowise-dev/repowise/pull/3841'
+];
+
 const HTML_PAGES = [
   { route: '/', relPath: 'index.html', canonical: 'https://abdullahazmi.com/' },
   { route: '/lab/', relPath: 'lab/index.html', canonical: 'https://abdullahazmi.com/lab/' },
@@ -196,7 +203,7 @@ function collectGraphIds(value, definedIds, referencedIds) {
   }
 }
 
-test('Profile README.md contains all 28 standalone repository links, portal badges, and institutional metadata', () => {
+test('Profile README.md contains all 28 standalone repository links, verified upstream PR links, portal badges, and institutional metadata', () => {
   const readmePath = path.join(PROFILE_ROOT, 'README.md');
   assert.ok(fs.existsSync(readmePath), 'Profile README.md must exist');
   const readme = fs.readFileSync(readmePath, 'utf8');
@@ -217,6 +224,9 @@ test('Profile README.md contains all 28 standalone repository links, portal badg
   for (const repo of ALL_28_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
     assert.ok(readme.includes(url), `Profile README.md missing standalone repository link ${url}`);
+  }
+  for (const prUrl of VERIFIED_UPSTREAM_PRS) {
+    assert.ok(readme.includes(prUrl), `Profile README.md missing verified upstream PR link ${prUrl}`);
   }
 });
 
@@ -341,7 +351,7 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
   assert.strictEqual(pdfPrimary.subarray(0, 5).toString('ascii'), '%PDF-');
   assert.ok(pdfPrimary.equals(pdfMirror));
 
-  for (const jsRel of ['assets/index-VqgN4zkm.js', 'assets/extension.js']) {
+  for (const jsRel of ['assets/index-2552cda7.js', 'assets/index-VqgN4zkm.js', 'assets/extension.js']) {
     const jsContent = fs.readFileSync(path.join(SITE_ROOT, jsRel), 'utf8');
     assert.doesNotThrow(() => new vm.Script(jsContent, { filename: jsRel }));
     for (const ref of extractJsRelativeRefs(jsContent)) {
@@ -352,6 +362,7 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
 
   const indexHtml = fs.readFileSync(path.join(SITE_ROOT, 'index.html'), 'utf8');
   const bundleJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/index-VqgN4zkm.js'), 'utf8');
+  const bundleVersionedJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/index-2552cda7.js'), 'utf8');
   const extensionJs = fs.readFileSync(path.join(SITE_ROOT, 'assets/extension.js'), 'utf8');
   const labHtml = fs.readFileSync(path.join(SITE_ROOT, 'lab/index.html'), 'utf8');
   const researchHtml = fs.readFileSync(path.join(SITE_ROOT, 'research/index.html'), 'utf8');
@@ -360,6 +371,7 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
   const provenance = fs.readFileSync(path.join(SITE_ROOT, 'provenance.md'), 'utf8');
 
   assert.ok(!bundleJs.includes('?tab=repositories'));
+  assert.ok(!bundleVersionedJs.includes('?tab=repositories'));
   assert.ok(!labHtml.includes('?tab=repositories'));
   assert.ok(!researchHtml.includes('?tab=repositories'));
   assert.ok(
@@ -370,6 +382,7 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
   for (const repo of CORE_16_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
     assert.ok(bundleJs.includes(url), `Bundle missing ${url}`);
+    assert.ok(bundleVersionedJs.includes(url), `Versioned bundle missing ${url}`);
   }
   for (const repo of ALL_28_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
@@ -381,10 +394,26 @@ test('Static assets and 28 repository links across abdullahazmi.com pass integri
     assert.ok(siteReadme.includes(url), `Site README.md missing ${url}`);
     assert.ok(provenance.includes(url), `provenance.md missing ${url}`);
   }
+  for (const prUrl of VERIFIED_UPSTREAM_PRS) {
+    assert.ok(extensionJs.includes(prUrl), `assets/extension.js missing ${prUrl}`);
+    assert.ok(labHtml.includes(prUrl), `lab/index.html missing ${prUrl}`);
+    assert.ok(researchHtml.includes(prUrl), `research/index.html missing ${prUrl}`);
+    assert.ok(profilePlan.includes(prUrl), `PROFILE_PLAN.md missing ${prUrl}`);
+    assert.ok(siteReadme.includes(prUrl), `Site README.md missing ${prUrl}`);
+    assert.ok(provenance.includes(prUrl), `provenance.md missing ${prUrl}`);
+  }
 });
 
 test('Validator helpers handle empty inputs, unquoted/reordered attributes, external schemes, and path traversal safely', () => {
   assert.deepStrictEqual(extractJsonLdBlocks(''), []);
+  assert.deepStrictEqual(extractJsonLdBlocks(null), []);
+  assert.deepStrictEqual(extractJsonLdBlocks(undefined), []);
+  assert.deepStrictEqual(extractRelativeAssetRefs(null), []);
+  assert.deepStrictEqual(extractJsRelativeRefs(null), []);
+  assert.strictEqual(new Set(VERIFIED_UPSTREAM_PRS).size, 4, 'VERIFIED_UPSTREAM_PRS must contain 4 distinct URLs');
+  for (const prUrl of VERIFIED_UPSTREAM_PRS) {
+    assert.match(prUrl, /^https:\/\/github\.com\/(?!aazminu\/)[^/]+\/[^/]+\/pull\/\d+$/, `Invalid external PR URL: ${prUrl}`);
+  }
   assert.deepStrictEqual(
     extractJsonLdBlocks('<script id="ld-1" type="application/ld+json; charset=utf-8">{"@context":"https://schema.org"}</script><script type=application/ld+json>{"@type":"Person"}</script>'),
     ['{"@context":"https://schema.org"}', '{"@type":"Person"}']
@@ -407,6 +436,10 @@ test('Validator helpers handle empty inputs, unquoted/reordered attributes, exte
   assert.throws(
     () => resolveLocalAssetPath(PROFILE_ROOT, PROFILE_ROOT, '../../outside.txt'),
     /escapes site root/
+  );
+  assert.throws(
+    () => resolveLocalAssetPath(PROFILE_ROOT, PROFILE_ROOT, '//protocol-relative.js'),
+    /Invalid local asset reference/
   );
   assert.strictEqual(mapSitemapUrlToLocalPath('https://abdullahazmi.com/research/?x=1#y'), 'research/index.html');
   assert.throws(() => mapSitemapUrlToLocalPath('https://malicious.example.com/'), /Invalid domain/);
