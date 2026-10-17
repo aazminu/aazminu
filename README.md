@@ -63,6 +63,17 @@
 
 ---
 
+### V. Verified Upstream Open-Source Pull Requests Merged (`author:aazminu`)
+
+| Upstream Pull Request | Project & Stack | Technical Resolution & Verification |
+| :--- | :--- | :--- |
+| **[`exmergo/dex#634`](https://github.com/exmergo/dex/pull/634)** | **Dex Analytics Engineering Toolkit** (`Python`, `dbt`) | Resolved target node kinds via `self.index.node_kind(name)` inside `_Builder._matches` (`transform/propagate.py`) and checked all `_FILE_NODES` in `_refuse_surviving_reads` so `transform rename seed` and `transform rename snapshot` rewrite downstream `ref()` call sites and YAML node references atomically (`+81/−1`, `pytest` suite). |
+| **[`exmergo/dex#633`](https://github.com/exmergo/dex/pull/633)** | **Dex Analytics Engineering Toolkit** (`Python`, `dbt`) | Updated `_GENERIC_HEADER` in `_collect_messages` (`transform/build.py`) to accept optional leading `[LEVEL]: ` tags in `dbt-core` 1.12 JSON log headers so underlying error causes remain attached during `shadow_parse` and `build` (`+50/−1`, `pytest` suite). |
+| **[`GustavoBaranda/chatflow-agent#52`](https://github.com/GustavoBaranda/chatflow-agent/pull/52)** | **ChatFlow Async Multi-Agent Runtime** (`Python`, `SQLite`, `AsyncIO`) | Checkpointed and restored `session.active_agent` and deep-copied `session.metadata` across both in-memory `SessionContext` and persistent `SQLiteSessionContext` (`chatflow_sessions`) when an unhandled exception triggers a turn rollback in `Runner.run_async()` (`+225/−7`, 190 `pytest` tests passing). |
+| **[`repowise-dev/repowise#3841`](https://github.com/repowise-dev/repowise/pull/3841)** | **Repowise Codebase Intelligence & MCP Graph** (`Python`, `AST`) | Extended `_BUILD_NAME_RE` (`code_origin.py`) to classify version-specific Swift Package Manager manifests (`Package@swift-<version>.swift`) as `build` files without misclassifying ordinary Swift sources, eliminating false-positive dead-code findings (`+66/−1`, `pytest` unit & dead-code suites). |
+
+---
+
 ### Technical Stack
 
 **Languages & Systems:**  
