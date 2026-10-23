@@ -1,11 +1,11 @@
 ## Abdullah Azmi
+[![CV / Resume](https://img.shields.io/badge/CV_%2F_Resume-PDF-4A5568?style=flat-square)](https://abdullahazmi.com/assets/abdullah-azmi-resume.pdf) 
 
 ### Computational Genomics & Agentic Systems (CGAS) Lab · Northwestern University (CS & NICO)
 
 [![Portfolio](https://img.shields.io/badge/Portfolio-abdullahazmi.com-5B6437?style=flat-square)](https://abdullahazmi.com/)
 [![CGAS Lab](https://img.shields.io/badge/Research_Lab-abdullahazmi.com%2Flab-3A2A1C?style=flat-square)](https://abdullahazmi.com/lab/)
 [![Workbench](https://img.shields.io/badge/Interactive_Workbench-4_Live_Simulations-2E4057?style=flat-square)](https://abdullahazmi.com/#workbench)
-[![CV / Resume](https://img.shields.io/badge/CV_%2F_Resume-PDF-4A5568?style=flat-square)](https://abdullahazmi.com/assets/abdullah-azmi-resume.pdf)
 [![ORCID](https://img.shields.io/badge/ORCID-0009--0004--8172--6394-A6CE39?style=flat-square&logo=orcid)](https://orcid.org/0009-0004-8172-6394)
 
 - **Affiliations:** Department of Computer Science & Northwestern Institute on Complex Systems (NICO), McCormick School of Engineering, Northwestern University (Evanston, IL & New York, NY)
