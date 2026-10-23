@@ -6,7 +6,7 @@
 [![Portfolio](https://img.shields.io/badge/Portfolio-abdullahazmi.com-5B6437?style=flat-square)](https://abdullahazmi.com/)
 [![CGAS Lab](https://img.shields.io/badge/Research_Lab-abdullahazmi.com%2Flab-3A2A1C?style=flat-square)](https://abdullahazmi.com/lab/)
 [![Workbench](https://img.shields.io/badge/Interactive_Workbench-4_Live_Simulations-2E4057?style=flat-square)](https://abdullahazmi.com/#workbench)
-[![ORCID](https://img.shields.io/badge/ORCID-0009--0004--8172--6394-A6CE39?style=flat-square&logo=orcid)](https://orcid.org/0009-0004-8172-6394)
+[![ORCID](https://img.shields.io/badge/ORCID-0009--0005--2720--3347-A6CE39?style=flat-square&logo=orcid)](https://orcid.org/0009-0005-2720-3347)
 
 - **Affiliations:** Department of Computer Science & Northwestern Institute on Complex Systems (NICO), McCormick School of Engineering, Northwestern University (Evanston, IL & New York, NY)
 - **Research & Engineering Focus:** Scientific Knowledge Graphs & Multi-Agent Verification, Regulatory Genomics & Non-Coding Variant Attribution, Calibrated Bayesian State-Space Inference, and High-Reliability Distributed Full-Stack Systems
