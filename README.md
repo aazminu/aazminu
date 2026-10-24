@@ -61,6 +61,25 @@
 - **[`aazminu/ClaimLess`](https://github.com/aazminu/ClaimLess):** AI medical-bill auditing and patient advocacy engine with GPCI locality-adjusted CMS Medicare fee-schedule benchmarking, NCCI unbundling detection, and settlement strategy synthesis.
 - **[`aazminu/finsim`](https://github.com/aazminu/finsim):** Interactive historical market regime and portfolio simulator with CAGR/Sharpe/Sortino/VaR/CVaR risk analytics, cash-conserving SELL-first rebalancing, and seeded GBM Monte Carlo projections.
 
+### IV-B. Quantitative Finance, Low-Latency Trading & Core Systems Engineering (`github.com/aazminu`)
+
+- **[`aazminu/bpipe-lob-engine`](https://github.com/aazminu/bpipe-lob-engine):** High-frequency L3 limit order book (price-time priority FIFO matching), Cont-Kukanov-Stoikov order flow imbalance (OFI), micro-price, VPIN toxicity, and Almgren-Chriss optimal execution trajectory solver.
+- **[`aazminu/fix-dropcopy-reconciler`](https://github.com/aazminu/fix-dropcopy-reconciler):** Zero-allocation FIX 4.2/4.4 Tag=Value wire parser, CheckSum (Tag 10) verifier, sequence-gap state machine (`ResendRequest` 35=2 / `SequenceReset` 35=4), and multi-venue drop-copy execution reconciler.
+- **[`aazminu/yield-curve-oas-engine`](https://github.com/aazminu/yield-curve-oas-engine):** Fixed-income par-to-zero piecewise log-cubic discount curve bootstrapper, Nelson-Siegel-Svensson (NSS) parametric fitter, key-rate DV01/convexity risk engine, and Black-Derman-Toy short-rate binomial lattice OAS pricer.
+- **[`aazminu/sec-edgar-13f-alpha`](https://github.com/aazminu/sec-edgar-13f-alpha):** Point-in-time SEC EDGAR Form 13F-HR XML holdings parser, CUSIP-9 check-digit validator, HHI crowding & conviction shift matrix, and Newey-West HAC multi-factor OLS attribution engine.
+- **[`aazminu/haven-fanniemae`](https://github.com/aazminu/haven-fanniemae):** Haven (1st Place Fannie Mae Challenge @ HackUTD X) — Deterministic Desktop Underwriter PITI/PMI/LTV/DTI mortgage qualification engine, reserve runway stress tester, and multi-criteria geospatial affordability ranker.
+- **[`aazminu/borrower-check-risk-engine`](https://github.com/aazminu/borrower-check-risk-engine):** Real-time synthetic-identity bipartite graph connected-component and Union-Find cluster scorer, BLS OES occupational income z-score verifier, and sliding-window velocity fraud engine.
+- **[`aazminu/raft-wal-kv`](https://github.com/aazminu/raft-wal-kv):** Deterministic Raft consensus state machine (leader election, split-vote randomized recovery, `AppendEntries` log consistency check, majority `commit_index` advancement) paired with a CRC32-framed binary Write-Ahead Log (WAL).
+- **[`aazminu/llm-kv-paged-allocator`](https://github.com/aazminu/llm-kv-paged-allocator):** vLLM-style PagedAttention physical KV-cache block allocator with FNV-1a token-block prefix-tree hashing, copy-on-write (CoW) beam-search fork semantics, LRU eviction, and continuous batching scheduler.
+- **[`aazminu/otel-ebpf-span-aggregator`](https://github.com/aazminu/otel-ebpf-span-aggregator):** High-throughput OpenTelemetry tail-based trace sampler, DDSketch relative-error quantile aggregator, and Linux cgroup v2 PSI/CPU throttling and OOM-kill correlator.
+- **[`aazminu/bitboard-uci-chess`](https://github.com/aazminu/bitboard-uci-chess):** 64-bit bitboard chess move generator and UCI engine with Zobrist 64-bit hashing, transposition tables, iterative deepening Negamax alpha-beta search, MVV-LVA move ordering, and PeSTO tapered evaluation.
+- **[`aazminu/mta-gtfs-nyc-tracker`](https://github.com/aazminu/mta-gtfs-nyc-tracker):** NYC Subway GTFS-Realtime trip-update delay propagator, headway regularity (Wait Assessment & Coefficient of Variation) analyzer,bunching detector, and Dijkstra transfer-aware router.
+- **[`aazminu/utilitrack-cbre`](https://github.com/aazminu/utilitrack-cbre):** UtiliTrack (1st Place CBRE Challenge & 3rd Overall @ HackUNT) — Commercial portfolio 5-parameter change-point HDD/CDD weather-normalized regression, EUI & Carbon Intensity (`kgCO2e/sqft`) benchmarker, and SLA work-order dispatcher.
+- **[`aazminu/chatphd-triage`](https://github.com/aazminu/chatphd-triage):** ChatPHD (1st Place Axxess Challenge) — Deterministic Emergency Severity Index (ESI v4) acuity classifier, Royal College of Physicians NEWS2 physiological scorer, and Bayesian log-likelihood ICD-10 differential ranker.
+- **[`aazminu/park-ez-vision`](https://github.com/aazminu/park-ez-vision):** Park-EZ (HackSMU V Winner) — Sutherland-Hodgman convex polygon IoU occupancy detector, Perspective-n-Point homography projector, and continuous-time Markov chain (`M/M/c/c` Erlang-B) lot full-probability forecaster.
+- **[`aazminu/espresso-pid-telemetry`](https://github.com/aazminu/espresso-pid-telemetry):** Discrete-time PID boiler controller with anti-windup and derivative-on-measurement filtering, Darcy-Weisbach puck hydraulic model, refractive-index TDS/extraction-yield solver, and Savitzky-Golay roast RoR/DTR analyzer.
+- **[`aazminu/ergo-keymap-optimizer`](https://github.com/aazminu/ergo-keymap-optimizer):** Split-columnar QMK/ZMK ergonomic keymap optimizer using Carpalx-style biomechanical effort modeling (same-finger bigrams, lateral stretches, hand alternation) and deterministic Simulated Annealing over corpus n-grams.
+
 ---
 
 ### V. Verified Upstream Open-Source Pull Requests Merged (`author:aazminu`)
@@ -99,5 +118,5 @@
 ### Contact & Verification
 - **Main Portfolio & Interactive Workbench:** [https://abdullahazmi.com/](https://abdullahazmi.com/)
 - **CGAS Lab Portal:** [https://abdullahazmi.com/lab/](https://abdullahazmi.com/lab/)
-- **Academic Email:** [m4u5t4@u.northwestern.edu](mailto:m4u5t4@u.northwestern.edu) · **Direct:** [erlokix@gmail.com](mailto:erlokix@gmail.com)
-- **ORCID:** [0009-0004-8172-6394](https://orcid.org/0009-0004-8172-6394)
+- **Academic Email:** [m4u5t4@u.northwestern.edu](mailto:m4u5t4@u.northwestern.edu)
+- **ORCID:** [0009-0005-2720-3347](https://orcid.org/0009-0005-2720-3347)

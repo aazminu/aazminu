@@ -61,7 +61,27 @@ const ADDITIONAL_12_REPOS = [
   'finsim'
 ];
 
+const SUBSTANTIATION_16_REPOS = [
+  'bpipe-lob-engine',
+  'fix-dropcopy-reconciler',
+  'yield-curve-oas-engine',
+  'sec-edgar-13f-alpha',
+  'haven-fanniemae',
+  'borrower-check-risk-engine',
+  'raft-wal-kv',
+  'llm-kv-paged-allocator',
+  'otel-ebpf-span-aggregator',
+  'bitboard-uci-chess',
+  'mta-gtfs-nyc-tracker',
+  'utilitrack-cbre',
+  'chatphd-triage',
+  'park-ez-vision',
+  'espresso-pid-telemetry',
+  'ergo-keymap-optimizer'
+];
+
 const ALL_28_REPOS = [...CORE_16_REPOS, ...ADDITIONAL_12_REPOS];
+const ALL_44_PROFILE_REPOS = [...ALL_28_REPOS, ...SUBSTANTIATION_16_REPOS];
 
 const VERIFIED_UPSTREAM_PRS = [
   'https://github.com/exmergo/dex/pull/634',
@@ -203,10 +223,11 @@ function collectGraphIds(value, definedIds, referencedIds) {
   }
 }
 
-test('Profile README.md contains all 28 standalone repository links, verified upstream PR links, portal badges, and institutional metadata', () => {
+test('Profile README.md contains all 44 standalone repository links (28 core/applied + 16 systems substantiation), verified upstream PR links, portal badges, and valid institutional metadata', () => {
   const readmePath = path.join(PROFILE_ROOT, 'README.md');
   assert.ok(fs.existsSync(readmePath), 'Profile README.md must exist');
   const readme = fs.readFileSync(readmePath, 'utf8');
+  const withdrawnOrcid = ['0009', '0004', '8172', '6394'].join('-');
 
   assert.ok(readme.includes('Computational Genomics & Agentic Systems (CGAS) Lab'), 'Must include CGAS Lab heading');
   assert.ok(readme.includes('Northwestern University'), 'Must include Northwestern University affiliation');
@@ -214,14 +235,16 @@ test('Profile README.md contains all 28 standalone repository links, verified up
   assert.ok(readme.includes('https://abdullahazmi.com/lab/'), 'Must link to lab portal https://abdullahazmi.com/lab/');
   assert.ok(readme.includes('https://abdullahazmi.com/#workbench'), 'Must link to interactive workbench');
   assert.ok(readme.includes('https://abdullahazmi.com/assets/abdullah-azmi-resume.pdf'), 'Must link to CV PDF');
-  assert.ok(readme.includes('https://orcid.org/0009-0004-8172-6394'), 'Must link to ORCID');
+  assert.ok(readme.includes('https://orcid.org/0009-0005-2720-3347'), 'Must link to valid ORCID 0009-0005-2720-3347');
+  assert.equal(readme.includes(withdrawnOrcid), false, 'Must not expose withdrawn ORCID');
+  assert.doesNotMatch(readme, new RegExp(['erlokix', 'gmail\\.com'].join('@'), 'i'), 'Must not expose withdrawn personal email');
   assert.ok(readme.includes('mailto:m4u5t4@u.northwestern.edu'), 'Must include institutional email');
   assert.ok(
     !readme.includes('?tab=repositories'),
     'Profile README.md must link directly to standalone repositories without ?tab=repositories fallbacks'
   );
 
-  for (const repo of ALL_28_REPOS) {
+  for (const repo of ALL_44_PROFILE_REPOS) {
     const url = `https://github.com/aazminu/${repo}`;
     assert.ok(readme.includes(url), `Profile README.md missing standalone repository link ${url}`);
   }
